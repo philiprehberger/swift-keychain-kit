@@ -139,15 +139,10 @@ public struct Keychain: Sendable {
 
     /// Delete all items for this service from the Keychain.
     public func deleteAll() throws {
-        #if canImport(Security)
-        let query = KeychainQuery.deleteAllQuery(service: service) as CFDictionary
-        let status = SecItemDelete(query)
-        guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw mapStatus(status)
+        let keys = try allKeys()
+        for key in keys {
+            try delete(key)
         }
-        #else
-        throw KeychainError.unexpectedStatus(-1)
-        #endif
     }
 
     /// Check if a key exists in the Keychain.
