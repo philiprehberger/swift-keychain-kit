@@ -189,6 +189,63 @@ public struct Keychain: Sendable {
         #endif
     }
 
+    // MARK: - Expiration / TTL
+
+    /// Store a string value with a time-to-live.
+    ///
+    /// - Parameters:
+    ///   - value: The string to store.
+    ///   - key: The key to store it under.
+    ///   - expiresIn: Time interval until expiration.
+    ///   - access: The access level for the item.
+    public func set(_ value: String, for key: String, expiresIn: TimeInterval, access: AccessLevel = .whenUnlocked) throws {
+        guard let data = value.data(using: .utf8) else {
+            throw KeychainError.encodingFailed("Failed to encode string as UTF-8")
+        }
+        let entry = ExpirableEntry(data: data, expiresAt: Date().addingTimeInterval(expiresIn))
+        let encoded = try JSONEncoder().encode(entry)
+        try setData(encoded, for: key, access: access)
+    }
+
+    /// Store a Codable value with a time-to-live.
+    public func set<T: Codable & Sendable>(_ value: T, for key: String, expiresIn: TimeInterval, access: AccessLevel = .whenUnlocked) throws {
+        let valueData: Data
+        do {
+            valueData = try JSONEncoder().encode(value)
+        } catch {
+            throw KeychainError.encodingFailed(error.localizedDescription)
+        }
+        let entry = ExpirableEntry(data: valueData, expiresAt: Date().addingTimeInterval(expiresIn))
+        let encoded = try JSONEncoder().encode(entry)
+        try setData(encoded, for: key, access: access)
+    }
+
+    /// Check if a stored item has expired.
+    ///
+    /// - Parameter key: The key to check.
+    /// - Returns: True if the item exists and has expired. False if not found or not expired.
+    public func isExpired(_ key: String) throws -> Bool {
+        guard let data = try getData(for: key) else { return false }
+        guard let entry = try? JSONDecoder().decode(ExpirableEntry.self, from: data) else { return false }
+        return entry.isExpired
+    }
+
+    /// Remove all expired items for this service.
+    ///
+    /// - Returns: The number of expired items removed.
+    @discardableResult
+    public func cleanExpired() throws -> Int {
+        let keys = try allKeys()
+        var removed = 0
+        for key in keys {
+            if try isExpired(key) {
+                try delete(key)
+                removed += 1
+            }
+        }
+        return removed
+    }
+
     // MARK: - Private Helpers
 
     private func setData(_ data: Data, for key: String, access: AccessLevel) throws {

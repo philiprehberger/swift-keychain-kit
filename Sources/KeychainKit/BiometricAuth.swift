@@ -112,6 +112,93 @@ extension Keychain {
         #endif
     }
 
+    /// Retrieve a biometric-protected string value.
+    ///
+    /// - Parameters:
+    ///   - key: The key to look up.
+    ///   - prompt: The biometric authentication prompt.
+    /// - Returns: The stored string, or nil if not found.
+    public func stringWithBiometric(
+        for key: String,
+        prompt: String = "Authenticate to access secure data"
+    ) async throws -> String? {
+        #if canImport(Security)
+        return try await withCheckedThrowingContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    let query = KeychainQuery.matchQuery(
+                        service: self.service,
+                        key: key,
+                        prompt: prompt
+                    ) as CFDictionary
+
+                    var result: AnyObject?
+                    let status = SecItemCopyMatching(query, &result)
+
+                    switch status {
+                    case errSecSuccess:
+                        guard let data = result as? Data,
+                              let string = String(data: data, encoding: .utf8) else {
+                            continuation.resume(returning: nil)
+                            return
+                        }
+                        continuation.resume(returning: string)
+                    case errSecItemNotFound:
+                        continuation.resume(returning: nil)
+                    default:
+                        continuation.resume(throwing: self.mapBiometricStatus(status))
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        #else
+        throw KeychainError.unexpectedStatus(-1)
+        #endif
+    }
+
+    /// Retrieve biometric-protected raw data.
+    ///
+    /// - Parameters:
+    ///   - key: The key to look up.
+    ///   - prompt: The biometric authentication prompt.
+    /// - Returns: The stored data, or nil if not found.
+    public func dataWithBiometric(
+        for key: String,
+        prompt: String = "Authenticate to access secure data"
+    ) async throws -> Data? {
+        #if canImport(Security)
+        return try await withCheckedThrowingContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    let query = KeychainQuery.matchQuery(
+                        service: self.service,
+                        key: key,
+                        prompt: prompt
+                    ) as CFDictionary
+
+                    var result: AnyObject?
+                    let status = SecItemCopyMatching(query, &result)
+
+                    switch status {
+                    case errSecSuccess:
+                        continuation.resume(returning: result as? Data)
+                    case errSecItemNotFound:
+                        continuation.resume(returning: nil)
+                    default:
+                        continuation.resume(throwing: self.mapBiometricStatus(status))
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        #else
+        throw KeychainError.unexpectedStatus(-1)
+        #endif
+    }
+
     #if canImport(Security)
     private func mapBiometricStatus(_ status: OSStatus) -> KeychainError {
         switch status {

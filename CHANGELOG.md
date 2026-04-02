@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-02
+
+### Added
+- `set(_:for:expiresIn:)` for storing values with time-to-live
+- `isExpired(_:)` for checking if a stored item has passed its TTL
+- `cleanExpired()` for removing all expired items
+- `stringWithBiometric(for:prompt:)` for biometric-protected string retrieval
+- `dataWithBiometric(for:prompt:)` for biometric-protected data retrieval
+
 ## [0.1.0] - 2026-04-02
 
 ### Added

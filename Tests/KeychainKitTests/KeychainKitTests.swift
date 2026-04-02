@@ -115,6 +115,32 @@ final class KeychainKitTests: XCTestCase {
         XCTAssertNil(try other.string(for: "shared-key"))
         try? other.deleteAll()
     }
+    // MARK: - TTL / Expiration
+
+    func testSetWithTTLAndCheck() throws {
+        try keychain.set("temp", for: "ttl-key", expiresIn: 60)
+        XCTAssertFalse(try keychain.isExpired("ttl-key"))
+    }
+
+    func testExpiredItem() throws {
+        try keychain.set("temp", for: "expired-key", expiresIn: 0)
+        // Sleep briefly to ensure expiry
+        Thread.sleep(forTimeInterval: 0.01)
+        XCTAssertTrue(try keychain.isExpired("expired-key"))
+    }
+
+    func testIsExpiredMissingKey() throws {
+        XCTAssertFalse(try keychain.isExpired("nonexistent"))
+    }
+
+    func testCleanExpired() throws {
+        try keychain.set("keep", for: "valid")
+        try keychain.set("expire", for: "old", expiresIn: 0)
+        Thread.sleep(forTimeInterval: 0.01)
+        let removed = try keychain.cleanExpired()
+        XCTAssertEqual(removed, 1)
+        XCTAssertNotNil(try keychain.string(for: "valid"))
+    }
     #else
     func testSkippedOnLinux() {
         // Keychain APIs require the Security framework (Apple platforms only)

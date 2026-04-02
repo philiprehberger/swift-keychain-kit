@@ -97,6 +97,27 @@ let count = try KeyRotation.rotateAll(
 ) { $0.replacingOccurrences(of: "v1.", with: "v2.") }
 ```
 
+### Expiration / TTL
+
+Store values that expire after a given time:
+
+```swift
+try keychain.set("temp-token", for: "session", expiresIn: 3600)  // 1 hour
+try keychain.isExpired("session")  // false
+
+// Clean up all expired items
+let removed = try keychain.cleanExpired()
+```
+
+### Biometric String & Data
+
+Retrieve strings and raw data with biometric protection:
+
+```swift
+let token = try await keychain.stringWithBiometric(for: "api-key")
+let cert = try await keychain.dataWithBiometric(for: "certificate")
+```
+
 ### Key Management
 
 ```swift
@@ -122,8 +143,13 @@ let keys = try keychain.allKeys()  // => ["credentials", "secure-creds"]
 | `.delete(_:)` | Delete a single key |
 | `.deleteAll()` | Delete all items for this service |
 | `.allKeys()` | List all stored keys |
+| `.set(_:for:expiresIn:access:)` | Store a value with time-to-live |
+| `.isExpired(_:)` | Check if a stored item has expired |
+| `.cleanExpired()` | Remove all expired items, return count |
 | `.setWithBiometric(_:for:policy:prompt:)` | Store with biometric protection |
 | `.objectWithBiometric(for:as:prompt:)` | Retrieve with biometric auth (async) |
+| `.stringWithBiometric(for:prompt:)` | Retrieve biometric-protected string (async) |
+| `.dataWithBiometric(for:prompt:)` | Retrieve biometric-protected data (async) |
 
 ### `KeyRotation`
 
