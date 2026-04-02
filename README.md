@@ -1,8 +1,8 @@
 # KeychainKit
 
 [![Tests](https://github.com/philiprehberger/swift-keychain-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/swift-keychain-kit/actions/workflows/ci.yml)
-[![Swift 6.0](https://img.shields.io/badge/Swift-6.0-orange.svg)](https://swift.org)
-[![Last updated](https://img.shields.io/github/last-commit/philiprehberger/swift-keychain-kit)](https://github.com/philiprehberger/swift-keychain-kit/commits/main)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fphiliprehberger%2Fswift-keychain-kit%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/philiprehberger/swift-keychain-kit)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fphiliprehberger%2Fswift-keychain-kit%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/philiprehberger/swift-keychain-kit)
 
 Modern, type-safe Keychain wrapper with Codable, biometric auth, and async/await
 
